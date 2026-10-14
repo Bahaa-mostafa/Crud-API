@@ -1,29 +1,41 @@
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 import ProductList from "./ProductList";
 import ProductForm from "./ProductForm";
-import useProducts from "../hooks/useProducts";
+import { useProductStore } from "../store/productStore";
+import { Pagination } from "../../../shared";
 
 function ProductManagement() {
   const [editingProductId, setEditingProductId] = useState<number | null>(null);
-
+  const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
+
   const limit = 10;
 
-  const {
-    products,
-    loading,
-    total,
-    error,
-    handleCreateProduct,
-    handleSaveUpdatedProduct,
-    handleDeleteProduct,
-  } = useProducts();
+  const products = useProductStore((state) => state.products);
+  const loading = useProductStore((state) => state.loading);
+  const error = useProductStore((state) => state.error);
+  const fetchProducts = useProductStore((state) => state.fetchProducts);
+  const addProduct = useProductStore((state) => state.addProduct);
+  const editProduct = useProductStore((state) => state.editProduct);
+  const removeProduct = useProductStore((state) => state.removeProduct);
+
+  useEffect(() => {
+    void fetchProducts();
+  }, [fetchProducts]);
+
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+  );
 
   const startIndex = (page - 1) * limit;
 
-  const paginatedProducts = products.slice(startIndex, startIndex + limit);
+  const paginatedProducts = filteredProducts.slice(
+    startIndex,
+    startIndex + limit
+  );
 
-  const totalPages = Math.ceil(total / limit);
+  const totalPages = Math.ceil(filteredProducts.length / limit);
 
   const onCancelEdit = () => {
     setEditingProductId(null);
@@ -44,8 +56,20 @@ function ProductManagement() {
           editingProductId={editingProductId}
           products={products}
           onCancelEdit={onCancelEdit}
-          onUpdateProduct={handleSaveUpdatedProduct}
-          onCreateProduct={handleCreateProduct}
+          onUpdateProduct={(product) => {
+            void editProduct(product).then((success) => {
+              if (success) {
+                setEditingProductId(null);
+              }
+            });
+          }}
+          onCreateProduct={async (name, price) => {
+            const success = await addProduct(name, price);
+
+            if (success) {
+              setPage(1);
+            }
+          }}
         />
 
         {loading && (
@@ -58,29 +82,22 @@ function ProductManagement() {
 
         <ProductList
           products={paginatedProducts}
-          onDeleteProduct={handleDeleteProduct}
+          searchQuery={searchQuery}
+          onSearchChange={(value) => {
+            setSearchQuery(value);
+            setPage(1);
+          }}
+          onDeleteProduct={(id) => {
+            void removeProduct(id);
+          }}
           onUpdateProduct={handleUpdateProduct}
         />
 
-        <div className="mt-6 flex justify-center gap-4">
-          <button
-            onClick={() => setPage(page - 1)}
-            disabled={page === 1}
-            className="rounded bg-blue-300 px-4 py-2 w-10 text-sm"
-          >
-            {"<"}
-          </button>
-
-          <span>page {page}</span>
-
-          <button
-            onClick={() => setPage(page + 1)}
-            disabled={page === totalPages}
-            className="rounded bg-blue-300 px-4 py-2 w-10 text-sm"
-          >
-            {">"}
-          </button>
-        </div>
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       </div>
     </div>
   );

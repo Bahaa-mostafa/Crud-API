@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { login, saveLogin } from "../services/authService";
+import { login } from "../services/authService";
 import { toast } from "react-toastify";
+import { Button, Input } from "../../../shared/index";
 
 function LoginForm() {
   const navigate = useNavigate();
@@ -9,21 +10,24 @@ function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
+const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
 
-    const isLoggedIn = login(email, password);
+  const success = login(email, password);
 
-    if (!isLoggedIn) {
-      toast.error("Invalid email or password");
-      return;
-    }
-    saveLogin();
-    setEmail("");
+  if (success) {
+    toast.success("Login successful");
+    navigate("/home");
+  } else {
+    toast.error("Invalid email or password");
+  }
+      setEmail("");
     setPassword("");
 
     navigate("/home");
-  };
+};
+
+  
 
   return (
     <div className="bg-gray-300 flex justify-center items-center min-h-screen">
@@ -39,13 +43,12 @@ function LoginForm() {
             Email
           </label>
 
-          <input
-            type="email"
+          <Input
+            type="text"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded border px-3 py-2"
-            id="email"
             placeholder="Enter Your Email"
+            id="email"
           />
         </div>
 
@@ -54,7 +57,7 @@ function LoginForm() {
             Password
           </label>
 
-          <input
+          <Input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -64,12 +67,9 @@ function LoginForm() {
           />
         </div>
 
-        <button
-          className="w-full rounded bg-blue-600 px-4 py-2 text-white"
-          type="submit"
-        >
+        <Button variant="primary" type="submit" className="w-full">
           Login
-        </button>
+        </Button>
 
         <div className="mt-2 flex flex-col items-center text-sm">
           <span>I don't have Account</span>

@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from "react";
 import type { Product } from "../types/product";
+import { Button, Input } from "../../../shared/index";
 
 interface ProductFormProps {
   onUpdateProduct: (product: Product) => void;
@@ -58,9 +59,8 @@ function ProductForm({
       >
         Product Name
       </label>
-      <input
+      <Input
         id="name"
-        className="w-full rounded-md border border-gray-300 px-3 py-2 outline-none focus:border-blue-500"
         type="text"
         value={name}
         onChange={(e) => setName(e.target.value)}
@@ -72,20 +72,20 @@ function ProductForm({
       >
         Price
       </label>
-      <input
+      <Input
         id="price"
-        className="w-full rounded-md border border-gray-300 px-3 py-2 outline-none focus:border-blue-500"
         type="number"
         value={price}
         onChange={(e) => setPrice(e.target.value)}
       />
       <div className="mt-6 flex justify-center ">
-        <button
+        <Button
           type="submit"
-          className="rounded-md bg-blue-600 w-30 h-10 text-white hover:bg-blue-700"
+          variant="primary"
+          
         >
           {editingProductId ? "Update Product" : "Add Product"}
-        </button>
+        </Button>
       </div>
     </form>
   );
